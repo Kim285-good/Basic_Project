@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <windows.h>
+#include <wininet.h>
 
 #define SERVER "localhost"
 #define USER "root"
@@ -15,6 +17,59 @@
 void error(const char* msg) {
     fprintf(stderr, "%s\n", msg);
     exit(1);
+}
+
+void crawl_webpage(const char* url) {
+    HINTERNET hInternet = NULL, hConnect = NULL;
+    char buffer[4096];
+    DWORD bytesRead;
+    char* end_tag;
+    int count = 0; // 최신 뉴스 5개만 출력하기 위한 카운터
+    hInternet = InternetOpen("MyBrowser", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (hInternet == NULL) {
+        printf("WinINet 초기화에 실패했습니다: %d\n", GetLastError());
+        return;
+    }
+
+    hConnect = InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
+    if (hConnect == NULL) {
+        printf("URL에 연결할 수 없습니다: %d\n", GetLastError());
+        InternetCloseHandle(hInternet);
+        return;
+    }
+
+    while (InternetReadFile(hConnect, buffer, sizeof(buffer), &bytesRead) && bytesRead > 0) {
+
+        char* start_tag = strstr(buffer, "<strong class=\"sa_text_strong\">");
+        if (start_tag != NULL) {
+            // "</strong>" 태그 찾기
+            end_tag = strstr(start_tag, "</strong>");
+            if (end_tag != NULL) {
+                start_tag += strlen("<strong class=\"sa_text_strong\">");
+                for (char* ptr = start_tag; ptr < end_tag; ++ptr) {
+                    if (*ptr == '&') {
+                        if (strncmp(ptr, "&quot;", 6) == 0) {
+                            ptr += 5;
+                        }
+                        else if (strncmp(ptr, "&#x27;", 6) == 0) {
+                            ptr += 5;
+                        }
+                    }
+                    else {
+                        putchar(*ptr);
+                    }
+                }
+                putchar('\n');
+                count++;
+                if (count >= 5) {
+                    break;
+                }
+            }
+        }
+    }
+
+    InternetCloseHandle(hConnect);
+    InternetCloseHandle(hInternet);
 }
 
 void manageSchedule(MYSQL* conn, const char* username) {
@@ -78,6 +133,8 @@ void manageSchedule(MYSQL* conn, const char* username) {
 }
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
+
     MYSQL* conn = mysql_init(NULL);
 
     if (conn == NULL) {
@@ -119,8 +176,23 @@ int main() {
         int num_rows = mysql_num_rows(result);
 
         if (num_rows == 1) {
-            printf("Login successful!\n");
-            manageSchedule(conn, username);
+            printf("Login successful! Welcome %s!\n", username);
+            printf("1. View News\n");
+            printf("2. Manage Schedule\n");
+            printf("Enter your choice: ");
+            int option;
+            scanf("%d", &option);
+
+            if (option == 1) {
+                const char* url = "https://news.naver.com/section/104"; // 세계 뉴스 섹션의 URL
+                crawl_webpage(url);
+            }
+            else if (option == 2) {
+                manageSchedule(conn, username);
+            }
+            else {
+                printf("Invalid choice!\n");
+            }
         }
         else {
             printf("Login failed!\n");
