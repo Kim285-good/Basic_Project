@@ -11,16 +11,16 @@ void crawl_webpage(const char* url) {
     char buffer[4096];
     DWORD bytesRead;
     char* end_tag;
-    int count = 0;// ´º½º 5°³Ã£±â
+    int count = 0;// ë‰´ìŠ¤ 5ê°œì°¾ê¸°
     hInternet = InternetOpen("MyBrowser", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (hInternet == NULL) {
-        printf("WinINet ÃÊ±âÈ­¿¡ ½ÇÆĞÇß½À´Ï´Ù: %d\n", GetLastError());
+        printf("WinINet ì´ˆê¸°í™”ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤: %d\n", GetLastError());
         return;
     }
 
     hConnect = InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
     if (hConnect == NULL) {
-        printf("URL¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù: %d\n", GetLastError());
+        printf("URLì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤: %d\n", GetLastError());
         InternetCloseHandle(hInternet);
         return;
     }
@@ -30,7 +30,7 @@ void crawl_webpage(const char* url) {
         char* start_tag = strstr(buffer, "<strong class=\"sa_text_strong\">");
         //printf("%s", start_tag);
         if (start_tag != NULL) {
-            // "</strong>" ÅÂ±× Ã£±â
+            // "</strong>" íƒœê·¸ ì°¾ê¸°
             end_tag = strstr(start_tag, "</strong>");
             if (end_tag != NULL) {
                 start_tag += strlen("<strong class=\"sa_text_strong\">");
@@ -63,8 +63,34 @@ void crawl_webpage(const char* url) {
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
-    const char* url = "https://news.naver.com/section/104";
-    //100 Á¤Ä¡, 101 °æÁ¦,102 »çÈ¸, 103 »ıÈ°/¹®È­, 104 ¼¼°è, 105 IT/°úÇĞ
-    crawl_webpage(url);
+    int select = 0;
+    char str1[5];
+    char* url = "https://news.naver.com/section/";
+    printf("1.Politics 2.Economy, 3.Society, 4.Lifestyle/Culture, 5.World 6.IT/Science : ");
+    scanf("%d", &select);
+    if (select == 1) {
+        strcpy(str1, "100");
+    }
+    else if (select == 2) {
+        strcpy(str1, "101");
+    }
+    else if (select == 3) {
+        strcpy(str1, "102");
+    }
+    else if (select == 4) {
+        strcpy(str1, "103");
+    }
+    else if (select == 5) {
+        strcpy(str1,"104");
+    }
+    else if (select == 6) {
+        strcpy(str1,"105");
+    }
+     char* new_url[100];
+     strcpy(new_url, url);
+     strcat(new_url, str1);
+
+     ////100 ì •ì¹˜, 101 ê²½ì œ,102 ì‚¬íšŒ, 103 ìƒí™œ/ë¬¸í™”, 104 ì„¸ê³„, 105 IT/ê³¼í•™
+    crawl_webpage(new_url);
     return 0;
 }
