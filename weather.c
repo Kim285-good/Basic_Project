@@ -4,37 +4,42 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 void crawl_webpage(const char* url) {
     HINTERNET hInternet = NULL, hConnect = NULL;
     char buffer[4096];
     DWORD bytesRead;
+    time_t now;
+    struct tm* local_time;
+    now = time(NULL);
+    local_time = localtime(&now);
     char* end_tag;
-    int temp = 0,temp1=0; // ³»ÀÏ ±â¿Âµµ ³ª¿À±â¶§¹®¿¡ ±×°ÍÀ» ¸·±âÀ§ÇÑ ÀÓ½Ãº¯¼ö
-    int count = 0;// Ç³¼Ó¸»°í ½Àµµ¸¦ Ã£±âÀ§ÇÑ Ä«¿îÆ®
+    int temp = 0,temp1=0; // ë‚´ì¼ ê¸°ì˜¨ë„ ë‚˜ì˜¤ê¸°ë•Œë¬¸ì— ê·¸ê²ƒì„ ë§‰ê¸°ìœ„í•œ ì„ì‹œë³€ìˆ˜
+    int count = 0;// í’ì†ë§ê³  ìŠµë„ë¥¼ ì°¾ê¸°ìœ„í•œ ì¹´ìš´íŠ¸
     hInternet = InternetOpen("MyBrowser", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (hInternet == NULL) {
-        printf("WinINet ÃÊ±âÈ­¿¡ ½ÇÆĞÇß½À´Ï´Ù: %d\n", GetLastError());
+        printf("WinINet ì´ˆê¸°í™”ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤: %d\n", GetLastError());
         return;
     }
 
     hConnect = InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
     if (hConnect == NULL) {
-        printf("URL¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù: %d\n", GetLastError());
+        printf("URLì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤: %d\n", GetLastError());
         InternetCloseHandle(hInternet);
         return;
     }
 
     char current_temp[10] = { 0 };
-    char dust_status[20] = { 0 };
+    char dust_status[50] = { 0 };
     char water_status[20] = { 0 };
     while (InternetReadFile(hConnect, buffer, sizeof(buffer), &bytesRead) && bytesRead > 0) {
-        // "<strong class=\"txt_temp\">" ÅÂ±× Ã£±â
+        // "<strong class=\"txt_temp\">" íƒœê·¸ ì°¾ê¸°
         char* start_tag = strstr(buffer, "<strong class=\"txt_temp\">");
 
         //printf("%s", buffer);
         if (start_tag != NULL) {
-            // "</strong>" ÅÂ±× Ã£±â
+            // "</strong>" íƒœê·¸ ì°¾ê¸°
              end_tag= strstr(start_tag, "</strong>");
             if (end_tag != NULL) {
                 
@@ -47,7 +52,7 @@ void crawl_webpage(const char* url) {
             }
         }
         
-        start_tag = strstr(buffer, "<dd class=\"dust_type1\">");
+         /*   start_tag = strstr(buffer, "<dd class=\"dust_type1\">");
         
         if (start_tag != NULL) { 
             end_tag = strstr(start_tag, "</dd>");
@@ -56,7 +61,19 @@ void crawl_webpage(const char* url) {
                     strncat(dust_status, ptr, 1);
                 }
             }
+        }*/
+        start_tag = strstr(buffer, "<span class=\"txt_weather\">");
+
+        if (start_tag != NULL) {
+            end_tag = strstr(start_tag, "</span>");
+            if (end_tag != NULL) {
+                dust_status[0] = '\0';
+                size_t length = end_tag - (start_tag + strlen("<span class=\"txt_weather\">"));
+                strncpy(dust_status, start_tag + strlen("<span class=\"txt_weather\">"), length);
+                dust_status[length] = '\0';
+            }
         }
+
         start_tag = strstr(buffer, "<span class=\"txt_tit\">");
         
         while (start_tag != NULL && count <1) {
@@ -79,7 +96,7 @@ void crawl_webpage(const char* url) {
     }
 
     printf("temp: %sC\n", current_temp);
-    printf("dust: %s\n", dust_status);
+    printf("now weather: %dtime %s\n", local_time->tm_hour,dust_status);
     printf("water: %s%%", water_status);
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
