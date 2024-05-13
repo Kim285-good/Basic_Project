@@ -1,4 +1,4 @@
-﻿
+﻿/*
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <wininet.h>
@@ -63,7 +63,7 @@ void crawl_webpage(const char* url) {
                }
            }
        }*/
-        start_tag = strstr(buffer, "<span class=\"txt_weather\">");
+      /*  start_tag = strstr(buffer, "<span class=\"txt_weather\">");
 
         if (start_tag != NULL) {
             end_tag = strstr(start_tag, "</span>");
@@ -109,3 +109,4 @@ int main() {
     crawl_webpage(url);
     return 0;
 }
+*/
