@@ -1,73 +1,73 @@
-#include <WINDOWS.H> // Windows 헤더 파일
-#include <wininet.h> // WinINet API 헤더 파일
-#include <stdio.h> // 표준 입출력 헤더 파일
-#include <stdlib.h> // 표준 라이브러리 헤더 파일
-#include <string.h> // 문자열 처리 헤더 파일
+/*
+#define _CRT_SECURE_NO_WARNINGS
 
-#define BUFFER_SIZE 4096 // 버퍼 크기 상수 정의
+#include <windows.h>
+#include <wininet.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 
-// 기사 제목을 가져오는 함수 선언
-void GetArticleTitles(const char* url);
 
-int main() {
-    SetConsoleOutputCP(CP_UTF8);
-    char url[] = "https://news.daum.net/"; // 대상 URL
-
-    // 기사 제목을 가져와서 출력
-    GetArticleTitles(url);
-
-    return 0;
-}
-
-// 기사 제목을 가져오는 함수 정의
-void GetArticleTitles(const char* url) {
-    // 인터넷 연결을 열기 위한 핸들 생성
-    HINTERNET h_internet = InternetOpenA("NewsCrawler", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
-    if (h_internet == NULL) { // 연결 실패 시
-        printf("인터넷 연결 열기에 실패했습니다.\n");
+void crawl_webpage(const char* url) {
+    HINTERNET hInternet = NULL, hConnect = NULL;
+    char buffer[4096];
+    DWORD bytesRead;
+    char* end_tag;
+    int count = 0;// 뉴스 5개찾기
+    hInternet = InternetOpen("MyBrowser", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (hInternet == NULL) {
+        printf("WinINet 초기화에 실패했습니다: %d\n", GetLastError());
         return;
     }
 
-    // URL에 연결하기 위한 핸들 생성
-    HINTERNET h_connect = InternetOpenUrlA(h_internet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
-    if (h_connect == NULL) { // 연결 실패 시
-        printf("URL에 연결하는 데 실패했습니다.\n");
-        InternetCloseHandle(h_internet);
+    hConnect = InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
+    if (hConnect == NULL) {
+        printf("URL에 연결할 수 없습니다: %d\n", GetLastError());
+        InternetCloseHandle(hInternet);
         return;
     }
 
-    char buffer[BUFFER_SIZE]; // 데이터를 읽을 버퍼
-    DWORD read_byte = 0; // 읽은 바이트 수
-    if (InternetReadFile(h_connect, buffer, BUFFER_SIZE - 1, &read_byte)) { // 데이터 읽기 시도
-        buffer[read_byte] = '\0'; // 문자열 종료를 위한 널 문자 추가
+    while (InternetReadFile(hConnect, buffer, sizeof(buffer), &bytesRead) && bytesRead > 0) {
 
-        // HTML에서 기사 제목을 찾기
-        char* p_title_start = strstr(buffer, "<title>");
-        if (p_title_start != NULL) { // 시작 태그 찾음
-            p_title_start += strlen("<title>"); // 시작 태그 길이만큼 포인터 이동
-            for (int i = 0; i < 5; ++i) { // 상위 5개의 기사 제목만 출력
-                char* p_title_end = strstr(p_title_start, "</title>"); // 끝 태그 찾기
-                if (p_title_end != NULL) { // 끝 태그 찾음
-                    *p_title_end = '\0'; // 끝 태그 위치에 널 문자 추가하여 문자열 종료
-                    printf("%d: %s\n", i + 1, p_title_start); // 기사 제목 출력
-                    p_title_start = strstr(p_title_end + strlen("</title>"), "<title>"); // 다음 기사 제목 시작 위치로 이동
-                    if (p_title_start != NULL)
-                        p_title_start += strlen("</title>");
-                    else
-                        break; // 더 이상 기사 제목이 없으면 반복 종료
+        char* start_tag = strstr(buffer, "<strong class=\"sa_text_strong\">");
+        //printf("%s", start_tag);
+        if (start_tag != NULL) {
+            // "</strong>" 태그 찾기
+            end_tag = strstr(start_tag, "</strong>");
+            if (end_tag != NULL) {
+                start_tag += strlen("<strong class=\"sa_text_strong\">");
+                for (char* ptr = start_tag; ptr < end_tag; ++ptr) {
+                    if (*ptr == '&') {
+                        if (strncmp(ptr, "&quot;", 6) == 0) {
+                            ptr += 5;
+                        }
+                        else if (strncmp(ptr, "&#x27;", 6) == 0) {
+                            ptr += 5;
+                        }
+                    }
+                    else {
+                        putchar(*ptr);
+                    }
                 }
-                else {
-                    printf("기사 제목을 찾을 수 없습니다.\n");
+                putchar('\n');
+                count++;
+                if (count >= 5) {
                     break;
                 }
             }
         }
-        else {
-            printf("기사 제목을 찾을 수 없습니다.\n");
-        }
     }
 
 
-    InternetCloseHandle(h_connect);
-    InternetCloseHandle(h_internet);
+    InternetCloseHandle(hConnect);
+    InternetCloseHandle(hInternet);
 }
+
+int main() {
+    SetConsoleOutputCP(CP_UTF8);
+    const char* url = "https://news.naver.com/section/104";
+    //100 정치, 101 경제,102 사회, 103 생활/문화, 104 세계, 105 IT/과학
+    crawl_webpage(url);
+    return 0;
+}
+*/
