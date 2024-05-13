@@ -1,3 +1,4 @@
+
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "mysql.h"
@@ -256,4 +257,3 @@ int main() {
     mysql_close(conn);
     return 0;
 }
-ddddd
