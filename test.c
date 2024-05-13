@@ -184,8 +184,35 @@ int main() {
             scanf("%d", &option);
 
             if (option == 1) {
-                const char* url = "https://news.naver.com/section/104"; // 세계 뉴스 섹션의 URL
-                crawl_webpage(url);
+                int select = 0;
+                char str1[5];
+                const char* url = "https://news.naver.com/section/";
+                printf("1.Politics 2.Economy, 3.Society, 4.Lifestyle/Culture, 5.World 6.IT/Science : ");
+                scanf("%d", &select);
+                if (select == 1) {
+                    strcpy(str1, "100");
+                }
+                else if (select == 2) {
+                    strcpy(str1, "101");
+                }
+                else if (select == 3) {
+                    strcpy(str1, "102");
+                }
+                else if (select == 4) {
+                    strcpy(str1, "103");
+                }
+                else if (select == 5) {
+                    strcpy(str1, "104");
+                }
+                else if (select == 6) {
+                    strcpy(str1, "105");
+                }
+                char new_url[100];
+                strcpy(new_url, url);
+                strcat(new_url, str1);
+
+                ////100 정치, 101 경제,102 사회, 103 생활/문화, 104 세계, 105 IT/과학
+                crawl_webpage(new_url);
             }
             else if (option == 2) {
                 manageSchedule(conn, username);
