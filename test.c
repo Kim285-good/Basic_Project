@@ -1,4 +1,4 @@
-
+﻿
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "mysql.h"
@@ -25,16 +25,16 @@ void crawl_webpage(const char* url) {
     char buffer[4096];
     DWORD bytesRead;
     char* end_tag;
-    int count = 0; // �ֽ� ���� 5���� ����ϱ� ���� ī����
+    int count = 0; // 최신 뉴스 5개만 출력하기 위한 카운터
     hInternet = InternetOpen("MyBrowser", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (hInternet == NULL) {
-        printf("WinINet �ʱ�ȭ�� �����߽��ϴ�: %d\n", GetLastError());
+        printf("WinINet 초기화에 실패했습니다: %d\n", GetLastError());
         return;
     }
 
     hConnect = InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
     if (hConnect == NULL) {
-        printf("URL�� ������ �� �����ϴ�: %d\n", GetLastError());
+        printf("URL에 연결할 수 없습니다: %d\n", GetLastError());
         InternetCloseHandle(hInternet);
         return;
     }
@@ -43,7 +43,7 @@ void crawl_webpage(const char* url) {
 
         char* start_tag = strstr(buffer, "<strong class=\"sa_text_strong\">");
         if (start_tag != NULL) {
-            // "</strong>" �±� ã��
+            // "</strong>" 태그 찾기
             end_tag = strstr(start_tag, "</strong>");
             if (end_tag != NULL) {
                 start_tag += strlen("<strong class=\"sa_text_strong\">");
@@ -69,6 +69,102 @@ void crawl_webpage(const char* url) {
         }
     }
 
+    InternetCloseHandle(hConnect);
+    InternetCloseHandle(hInternet);
+}
+
+void crawl_weather(const char* url) {
+    HINTERNET hInternet = NULL, hConnect = NULL;
+    char buffer[4096];
+    DWORD bytesRead;
+    time_t now;
+    struct tm* local_time;
+    now = time(NULL);
+    local_time = localtime(&now);
+    char* end_tag;
+    int temp = 0, temp1 = 0; // ë‚´ì¼ ê¸°ì˜¨ë„ ë‚˜ì˜¤ê¸°ë•Œë¬¸ì— ê·¸ê²ƒì„ ë§‰ê¸°ìœ„í•œ ìž„ì‹œë³€ìˆ˜
+    int count = 0;// í’ì†ë§ê³  ìŠµë„ë¥¼ ì°¾ê¸°ìœ„í•œ ì¹´ìš´íŠ¸
+    hInternet = InternetOpen("MyBrowser", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (hInternet == NULL) {
+        printf("WinINet ì´ˆê¸°í™”ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤: %d\n", GetLastError());
+        return;
+    }
+
+    hConnect = InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD, 0);
+    if (hConnect == NULL) {
+        printf("URLì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤: %d\n", GetLastError());
+        InternetCloseHandle(hInternet);
+        return;
+    }
+
+    char current_temp[10] = { 0 };
+    char dust_status[50] = { 0 };
+    char water_status[20] = { 0 };
+    while (InternetReadFile(hConnect, buffer, sizeof(buffer), &bytesRead) && bytesRead > 0) {
+        // "<strong class=\"txt_temp\">" íƒœê·¸ ì°¾ê¸°
+        char* start_tag = strstr(buffer, "<strong class=\"txt_temp\">");
+
+        //printf("%s", buffer);
+        if (start_tag != NULL) {
+            // "</strong>" íƒœê·¸ ì°¾ê¸°
+            end_tag = strstr(start_tag, "</strong>");
+            if (end_tag != NULL) {
+
+                for (char* ptr = start_tag + strlen("<strong class=\"txt_temp\">"); ptr < end_tag; ++ptr) {
+                    if (*ptr >= '0' && *ptr <= '9' && temp != 2) {
+                        strncat(current_temp, ptr, 1);
+                        temp++;
+                    }
+                }
+            }
+        }
+
+        /*   start_tag = strstr(buffer, "<dd class=\"dust_type1\">");
+
+       if (start_tag != NULL) {
+           end_tag = strstr(start_tag, "</dd>");
+           if (end_tag != NULL) {
+               for (char* ptr = start_tag + strlen("<dd class=\"dust_type1\">"); ptr < end_tag; ++ptr) {
+                   strncat(dust_status, ptr, 1);
+               }
+           }
+       }*/
+        start_tag = strstr(buffer, "<span class=\"txt_weather\">");
+
+        if (start_tag != NULL) {
+            end_tag = strstr(start_tag, "</span>");
+            if (end_tag != NULL) {
+                dust_status[0] = '\0';
+                size_t length = end_tag - (start_tag + strlen("<span class=\"txt_weather\">"));
+                strncpy(dust_status, start_tag + strlen("<span class=\"txt_weather\">"), length);
+                dust_status[length] = '\0';
+            }
+        }
+
+        start_tag = strstr(buffer, "<span class=\"txt_tit\">");
+
+        while (start_tag != NULL && count < 1) {
+            count++;
+            start_tag = strstr(start_tag + 1, "<span class=\"txt_tit\">");
+        }
+        if (start_tag != NULL) {
+            end_tag = strstr(start_tag, "</dd>");
+            if (end_tag != NULL) {
+                for (char* ptr = start_tag + strlen("</span>"); ptr < end_tag; ++ptr) {
+                    if (*ptr >= '0' && *ptr <= '9' && temp1 != 2) {
+                        strncat(water_status, ptr, 1);
+                        temp1++;
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    printf("temp: %sC\n", current_temp);
+    printf("now weather: %s\n",dust_status);
+    printf("water: %s%%", water_status);
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
 }
@@ -178,8 +274,9 @@ int main() {
 
         if (num_rows == 1) {
             printf("Login successful! Welcome %s!\n", username);
-            printf("1. View News\n");
-            printf("2. Manage Schedule\n");
+            printf("1. View News Title\n");
+            printf("2. View today's weather\n");
+            printf("3. Manage Schedule\n");
             printf("Enter your choice: ");
             int option;
             scanf("%d", &option);
@@ -212,10 +309,14 @@ int main() {
                 strcpy(new_url, url);
                 strcat(new_url, str1);
 
-                ////100 ��ġ, 101 ����,102 ��ȸ, 103 ��Ȱ/��ȭ, 104 ����, 105 IT/����
+                ////100 정치, 101 경제,102 사회, 103 생활/문화, 104 세계, 105 IT/과학
                 crawl_webpage(new_url);
             }
             else if (option == 2) {
+                const char* url = "https://search.daum.net/search?w=tot&DA=YZR&t__nil_searchbox=btn&q=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C+%EB%82%A0%EC%94%A8";
+                crawl_weather(url);
+            }
+            else if (option == 3) {
                 manageSchedule(conn, username);
             }
             else {
