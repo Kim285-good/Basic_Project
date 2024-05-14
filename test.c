@@ -1,5 +1,5 @@
-﻿
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include "mysql.h"
 #include <stdio.h>
@@ -164,7 +164,7 @@ void crawl_weather(const char* url) {
 
     printf("temp: %sC\n", current_temp);
     printf("now weather: %s\n",dust_status);
-    printf("water: %s%%", water_status);
+    printf("water: %s%%\n", water_status);
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
 }
@@ -229,6 +229,7 @@ void manageSchedule(MYSQL* conn, const char* username) {
     }
 }
 
+
 int main() {
     SetConsoleOutputCP(CP_UTF8);
 
@@ -242,119 +243,109 @@ int main() {
         error(mysql_error(conn));
     }
 
-    printf("1. Login\n");
-    printf("2. Register\n");
-    printf("Enter your choice: ");
-    int choice;
-    scanf("%d", &choice);
+    while (1) {
+        printf("1. Login\n");
+        printf("2. Register\n");
+        printf("Enter your choice: ");
+        int choice;
+        scanf("%d", &choice);
 
-    if (choice == 1) {
-        char username[255];
-        char password[255];
+        if (choice == 1) {
+            char username[255];
+            char password[255];
 
-        printf("Enter username: ");
-        scanf("%s", username);
-        printf("Enter password: ");
-        scanf("%s", password);
+            printf("Enter username: ");
+            scanf("%s", username);
+            printf("Enter password: ");
+            scanf("%s", password);
 
-        char query[1000];
-        sprintf(query, "SELECT * FROM %s.users WHERE username='%s' AND password='%s'", DATABASE_USERS, username, password);
+            char query[1000];
+            sprintf(query, "SELECT * FROM %s.users WHERE username='%s' AND password='%s'", DATABASE_USERS, username, password);
 
-        if (mysql_query(conn, query)) {
-            error(mysql_error(conn));
-        }
-
-        MYSQL_RES* result = mysql_store_result(conn);
-
-        if (result == NULL) {
-            error(mysql_error(conn));
-        }
-
-        int num_rows = mysql_num_rows(result);
-
-        if (num_rows == 1) {
-            printf("Login successful! Welcome %s!\n", username);
-            printf("1. View News Title\n");
-            printf("2. View today's weather\n");
-            printf("3. Manage Schedule\n");
-            printf("Enter your choice: ");
-            int option;
-            scanf("%d", &option);
-
-            if (option == 1) {
-                int select = 0;
-                char str1[5];
-                const char* url = "https://news.naver.com/section/";
-                printf("1.Politics 2.Economy, 3.Society, 4.Lifestyle/Culture, 5.World 6.IT/Science : ");
-                scanf("%d", &select);
-                if (select == 1) {
-                    strcpy(str1, "100");
-                }
-                else if (select == 2) {
-                    strcpy(str1, "101");
-                }
-                else if (select == 3) {
-                    strcpy(str1, "102");
-                }
-                else if (select == 4) {
-                    strcpy(str1, "103");
-                }
-                else if (select == 5) {
-                    strcpy(str1, "104");
-                }
-                else if (select == 6) {
-                    strcpy(str1, "105");
-                }
-                char new_url[100];
-                strcpy(new_url, url);
-                strcat(new_url, str1);
-
-                ////100 정치, 101 경제,102 사회, 103 생활/문화, 104 세계, 105 IT/과학
-                crawl_webpage(new_url);
+            if (mysql_query(conn, query)) {
+                error(mysql_error(conn));
             }
-            else if (option == 2) {
-                const char* url = "https://search.daum.net/search?w=tot&DA=YZR&t__nil_searchbox=btn&q=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C+%EB%82%A0%EC%94%A8";
-                crawl_weather(url);
+
+            MYSQL_RES* result = mysql_store_result(conn);
+
+            if (result == NULL) {
+                error(mysql_error(conn));
             }
-            else if (option == 3) {
-                manageSchedule(conn, username);
+
+            int num_rows = mysql_num_rows(result);
+
+            if (num_rows == 1) {
+                printf("Login successful! Welcome %s!\n", username);
+                while (1) {
+                    printf("1. View News Title\n");
+                    printf("2. View today's weather\n");
+                    printf("3. Manage Schedule\n");
+                    printf("4. Logout\n");
+                    printf("Enter your choice: ");
+                    int option;
+                    scanf("%d", &option);
+
+                    if (option == 1) {
+                        int select = 0;
+                        char str1[5];
+                        const char* url = "https://news.naver.com/section/";
+                        printf("1.Politics 2.Economy, 3.Society, 4.Lifestyle/Culture, 5.World 6.IT/Science : ");
+                        scanf("%d", &select);
+                        if (select == 1) {
+                            strcpy(str1, "100");
+                        }
+                        else if (select == 2) {
+                            strcpy(str1, "101");
+                        }
+                        else if (select == 3) {
+                            strcpy(str1, "102");
+                        }
+                        else if (select == 4) {
+                            strcpy(str1, "103");
+                        }
+                        else if (select == 5) {
+                            strcpy(str1, "104");
+                        }
+                        else if (select == 6) {
+                            strcpy(str1, "105");
+                        }
+                        char new_url[100];
+                        strcpy(new_url, url);
+                        strcat(new_url, str1);
+
+                        ////100 정치, 101 경제,102 사회, 103 생활/문화, 104 세계, 105 IT/과학
+                        crawl_webpage(new_url);
+                    }
+                    else if (option == 2) {
+                        const char* url = "https://search.daum.net/search?w=tot&DA=YZR&t__nil_searchbox=btn&q=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C+%EB%82%A0%EC%94%A8";
+                        crawl_weather(url);
+                    }
+                    else if (option == 3) {
+                        manageSchedule(conn, username);
+                    }
+                    else if (option == 4) {
+                        break; // 로그아웃 및 기능 선택으로 이동
+                    }
+                    else {
+                        printf("Invalid choice!\n");
+                    }
+                }
             }
             else {
-                printf("Invalid choice!\n");
+                printf("Login failed!\n");
             }
+
+            mysql_free_result(result);
+        }
+        else if (choice == 2) {
+            // 회원 가입 기능 수행
         }
         else {
-            printf("Login failed!\n");
+            printf("Invalid choice!\n");
         }
-
-        mysql_free_result(result);
-    }
-    else if (choice == 2) {
-        char username[255];
-        char password[255];
-
-        printf("Enter username: ");
-        scanf("%s", username);
-        printf("Enter password: ");
-        scanf("%s", password);
-
-        if (mysql_select_db(conn, DATABASE_USERS)) {
-            error(mysql_error(conn));
-        }
-
-        char query[1000];
-        sprintf(query, "INSERT INTO %s.users (username, password) VALUES ('%s', '%s')", DATABASE_USERS, username, password);
-
-        if (mysql_query(conn, query)) {
-            error(mysql_error(conn));
-        }
-
-        printf("Registration successful!\n");
-    }
-    else {
-        printf("Invalid choice!\n");
     }
 
     mysql_close(conn);
     return 0;
 }
+
