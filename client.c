@@ -39,7 +39,9 @@ int main(int argc, char* argv[])
 
     if (argv[1] != NULL)
     {
-        strcpy_s(nickname, sizeof(nickname), argv[1]);
+        strcpy_s(ip_addr, sizeof(ip_addr), argv[1]);
+        port_number = atoi(argv[2]);
+        strcpy_s(nickname, sizeof(nickname), argv[3]);
     }
 
     // 클라이언트 초기화
