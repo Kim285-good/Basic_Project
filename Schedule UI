@@ -1,0 +1,76 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include "schedule.h"
+#include <windows.h>
+
+void manageSchedule(MYSQL* conn, const char* username) {
+    system("cls");
+    printf("\n\n\n\n\n\n\n\n\n\n");
+    printf("\t\t\t\t\t\t┌───────────────────────────────────────────────────┐\n");
+    printf("                                                │");
+    printf("Welcome to the schedule management program, %s!  │\n", "jack");
+    printf("                                                │");
+    printf("1. Add Schedule\t\t\t\t    │\n");
+    printf("                                                │");
+    printf("2. View Schedule\t\t\t\t    │\n");
+    printf("                                                └───────────────────────────────────────────────────┘\n");
+    printf("                                                 ");
+    printf("Enter your choice:");
+    int choice;
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        char date[20];
+        char schedule[255];
+        printf("                                                 ");
+        printf("Enter date (YYYY-MM-DD): ");
+        scanf("%s", date);
+        printf("                                                 ");
+        printf("Enter schedule: ");
+        scanf(" %[^\n]", schedule);
+
+        char query[1000];
+        sprintf(query, "INSERT INTO schedule.schedules (username, date, schedule) VALUES ('%s', '%s', '%s')", username, date, schedule);
+
+        system("cls");
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\tchedule added successfully!!\n");
+        Sleep(2000);
+     
+    }
+    else if (choice == 2) {
+        char date[20];
+        system("cls");
+        printf("\n\n\n\n\n\n\n\n\n\n");
+        printf("                                             ");
+        printf("Enter date to view schedule (YYYY-MM-DD): ");
+        scanf("%s", date);
+
+        char query[1000];
+        sprintf(query, "SELECT schedule FROM schedule.schedules WHERE username='%s' AND date='%s'", username, date);
+
+
+
+        MYSQL_RES* result = mysql_store_result(conn);
+
+
+        int num_fields = mysql_num_fields(result);
+        MYSQL_ROW row;
+
+        system("cls");
+        printf("\n\n\n\n\n\n\n\n\n\n");
+        printf("\t\t\t\t\t\t┌──────────────────────────┐\n");
+        printf("                                                │");
+        printf("Schedule for %d\t   │\n", date);
+        printf("                                                │");
+        
+        while ((row = mysql_fetch_row(result))) {
+            printf("%s\n", row[0]);
+        }
+        printf("                                                └──────────────────────────┘\n");
+        Sleep(3000);
+        mysql_free_result(result);
+    }
+    else {
+        printf("Invalid choice!\n");
+    }
+}
