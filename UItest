@@ -21,12 +21,21 @@ void startChattingService();
 
 void mainMenu(MYSQL* conn, const char* username) {
     while (1) {
-        printf("1. View News Title\n");
-        printf("2. View today's weather\n");
-        printf("3. Manage Schedule\n");
-        printf("4. Chatting Service\n");
-        printf("5. Logout\n");
-        printf("Enter your choice: ");
+        system("cls");
+        printf("\n\n\n\n\n\n\n\n\n\n");
+        printf("\t\t\t\t\t\t┌──────────────────────────┐\n");
+        printf("                                                │");
+        printf("1. View News Title\t   │\n");
+        printf("                                                │");
+        printf("2. View today's weather   │\n");
+        printf("                                                │");
+        printf("3. Manage Schedule\t   │\n");
+        printf("                                                │");
+        printf("4. Chatting Service\t   │\n");
+        printf("                                                │");
+        printf("5. Logout\t\t   │\n");
+        printf("                                                └──────────────────────────┘\n");
+        printf("\t\t\t\t\t\tEnter your choice:");
         int option;
         scanf("%d", &option);
 
@@ -34,7 +43,23 @@ void mainMenu(MYSQL* conn, const char* username) {
             int select = 0;
             char str1[5];
             const char* url = "https://news.naver.com/section/";
-            printf("1.Politics 2.Economy 3.Society 4.Lifestyle/Culture 5.World 6.IT/Science: ");
+            system("cls");
+            printf("\n\n\n\n\n\n\n\n\n\n");
+            printf("\t\t\t\t\t\t┌──────────────────────────┐\n");
+            printf("                                                │");
+            printf("1. Politics\t\t   │\n");
+            printf("                                                │");
+            printf("2. Economy\t\t   │\n");
+            printf("                                                │");
+            printf("3. Society\t\t   │\n");
+            printf("                                                │");
+            printf("4. Lifestyle/Culture\t   │\n");
+            printf("                                                │");
+            printf("5. World\t\t   │\n");
+            printf("                                                │");
+            printf("5. IT/Science\t\t   │\n");
+            printf("                                                └──────────────────────────┘\n");
+            printf("\t\t\t\t\t\tEnter your choice:");
             scanf("%d", &select);
             if (select == 1) strcpy(str1, "100");
             else if (select == 2) strcpy(str1, "101");
@@ -109,7 +134,7 @@ int main() {
             scanf("%s", username);
             printf("\t\t\t\t\t\tEnter password:");
             scanf("%s", password);
-            
+
             if (login(conn, username, password)) {
                 system("cls");
                 printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\Login successful! Welcome %s!\n", username);
