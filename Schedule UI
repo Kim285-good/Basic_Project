@@ -8,7 +8,7 @@ void manageSchedule(MYSQL* conn, const char* username) {
     printf("\n\n\n\n\n\n\n\n\n\n");
     printf("\t\t\t\t\t\t┌───────────────────────────────────────────────────┐\n");
     printf("                                                │");
-    printf("Welcome to the schedule management program, %s!  │\n", "jack");
+    printf("Welcome to the schedule management program, %s!  │\n", username);
     printf("                                                │");
     printf("1. Add Schedule\t\t\t\t    │\n");
     printf("                                                │");
@@ -22,6 +22,7 @@ void manageSchedule(MYSQL* conn, const char* username) {
     if (choice == 1) {
         char date[20];
         char schedule[255];
+
         printf("                                                 ");
         printf("Enter date (YYYY-MM-DD): ");
         scanf("%s", date);
@@ -32,10 +33,12 @@ void manageSchedule(MYSQL* conn, const char* username) {
         char query[1000];
         sprintf(query, "INSERT INTO schedule.schedules (username, date, schedule) VALUES ('%s', '%s', '%s')", username, date, schedule);
 
+        if (mysql_query(conn, query)) {
+            error(mysql_error(conn));
+        }
         system("cls");
-        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\tchedule added successfully!!\n");
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\tSchedule added successfully!\n");
         Sleep(2000);
-     
     }
     else if (choice == 2) {
         char date[20];
@@ -48,10 +51,15 @@ void manageSchedule(MYSQL* conn, const char* username) {
         char query[1000];
         sprintf(query, "SELECT schedule FROM schedule.schedules WHERE username='%s' AND date='%s'", username, date);
 
-
+        if (mysql_query(conn, query)) {
+            error(mysql_error(conn));
+        }
 
         MYSQL_RES* result = mysql_store_result(conn);
 
+        if (result == NULL) {
+            error(mysql_error(conn));
+        }
 
         int num_fields = mysql_num_fields(result);
         MYSQL_ROW row;
@@ -60,15 +68,16 @@ void manageSchedule(MYSQL* conn, const char* username) {
         printf("\n\n\n\n\n\n\n\n\n\n");
         printf("\t\t\t\t\t\t┌──────────────────────────┐\n");
         printf("                                                │");
-        printf("Schedule for %d\t   │\n", date);
+        printf("Schedule for %s\t   │\n", date);
         printf("                                                │");
-        
+     
         while ((row = mysql_fetch_row(result))) {
             printf("%s\n", row[0]);
         }
+
+        mysql_free_result(result);
         printf("                                                └──────────────────────────┘\n");
         Sleep(3000);
-        mysql_free_result(result);
     }
     else {
         printf("Invalid choice!\n");
